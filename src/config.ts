@@ -1,4 +1,4 @@
-import { positiveInt } from './env';
+import { positiveInt, withoutTrailingSlash } from './env';
 import type { OllamaEndpoint } from './ollama';
 
 export interface Config {
@@ -8,7 +8,7 @@ export interface Config {
   vaultPath: string;
   /** The Ollama API the Documenter, Researcher and Linker chat with. */
   chatEndpoint: OllamaEndpoint;
-  /** The Ollama API that embeds notes and queries: the chat one unless OLLAMA_EMBED_URL says otherwise. */
+  /** The Ollama API that embeds notes and search queries: the chat one unless OLLAMA_EMBED_URL says otherwise. */
   embedEndpoint: OllamaEndpoint;
   ollamaModel: string;
   /** Let thinking models (qwen3, deepseek-r1) reason first. Much slower. */
@@ -39,10 +39,6 @@ function ollamaEndpoints(env: NodeJS.ProcessEnv): Pick<Config, 'chatEndpoint' | 
 
 function endpoint(url: string, apiKey: string | undefined): OllamaEndpoint {
   return apiKey ? { url, apiKey } : { url };
-}
-
-function withoutTrailingSlash(url: string): string {
-  return url.replace(/\/+$/, '');
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {

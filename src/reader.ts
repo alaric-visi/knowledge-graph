@@ -133,7 +133,6 @@ export async function ask(question: string, options: ReaderOptions): Promise<Rea
   }
 }
 
-/** Loopback names and addresses: 127.0.0.0/8, ::1 and localhost. */
 function requireLoopback(what: string, url: string): void {
   if (!URL.canParse(url)) throw new ReaderError(`The ${what} ${url} is not a URL.`);
   if (!isLoopback(url)) {

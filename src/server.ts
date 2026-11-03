@@ -345,17 +345,17 @@ export function startupLog(cfg: Config): string[] {
   const { chatEndpoint: chat, embedEndpoint: embeddings } = cfg;
   const offLoopback =
     chat.url === embeddings.url
-      ? [{ what: 'chat and embeddings go', url: chat.url }]
+      ? [{ calls: 'chat and embeddings go', url: chat.url }]
       : [
-          { what: 'chat goes', url: chat.url },
-          { what: 'embeddings go', url: embeddings.url },
+          { calls: 'chat goes', url: chat.url },
+          { calls: 'embeddings go', url: embeddings.url },
         ];
   return [
     `knowledge-graph listening on ${cfg.host}:${cfg.port}`,
     `  vault:  ${cfg.vaultPath}`,
-    `  ollama: ${chat.url} (${cfg.ollamaModel})`,
+    `  chat: ${chat.url} (${cfg.ollamaModel})`,
     `  embeddings: ${embeddings.url} (${cfg.embedModel})`,
     `  researcher: ${cfg.researcher ? 'on' : 'off'}`,
-    ...offLoopback.filter(e => !isLoopback(e.url)).map(e => `  not on loopback: ${e.what} to ${e.url}`),
+    ...offLoopback.filter(e => !isLoopback(e.url)).map(e => `  not on loopback: ${e.calls} to ${e.url}`),
   ];
 }

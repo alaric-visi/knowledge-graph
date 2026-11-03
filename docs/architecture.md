@@ -80,8 +80,8 @@ notes that must never leave the machine.
 | The Reader's answer (`npm run ask`) | Local: Ollama, `qwen3.6:35b-a3b-coding` by default (`KG_READER_MODEL`) |
 
 So by default a code capture never leaves the machine. Someone whose machine
-can't run the chat model can point the Documenter and Linker at hosted Ollama
-instead; the service then logs, at startup, each endpoint that isn't on
+can't run the chat model can point the Documenter and Linker (and the
+Researcher, when it's on) at hosted Ollama instead; the service then logs, at startup, each endpoint that isn't on
 loopback, and the Reader stays local regardless (see "Without local models" in
 the README). Otherwise the one cloud step in building the graph is writing
 memos, and it's deliberate: a memo is distilled from a

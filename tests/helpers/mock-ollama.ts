@@ -1,4 +1,5 @@
 import * as http from 'http';
+import type { Config } from '../../src/config';
 
 /**
  * Words the mock embed endpoint knows. A text's vector counts how often each
@@ -131,6 +132,6 @@ export function close(server: http.Server): Promise<void> {
 }
 
 /** Config fields that send both chat and embeddings to one Ollama at `url`, with no key. */
-export function ollamaAt(url: string): { chatEndpoint: { url: string }; embedEndpoint: { url: string } } {
+export function ollamaAt(url: string): Pick<Config, 'chatEndpoint' | 'embedEndpoint'> {
   return { chatEndpoint: { url }, embedEndpoint: { url } };
 }

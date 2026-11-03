@@ -93,8 +93,8 @@ docker run -d -p 127.0.0.1:5678:5678 -v /path/to/vault:/vault \
 
 ### Without local models
 
-The Documenter and Linker need a chat model, and search needs an embedding
-model. If your machine can't run the chat model, run it in the cloud and keep
+The Documenter and Linker (and the Researcher, when it's on) need a chat
+model, and search needs an embedding model. If your machine can't run the chat model, run it in the cloud and keep
 the rest here. There are two routes:
 
 - **The Ollama app, with a cloud model.** Install Ollama, `ollama signin`, and
@@ -113,7 +113,8 @@ the rest here. There are two routes:
 
   Direct calls use the model's plain name, from `https://ollama.com/api/tags`.
   Keep embeddings local: hosted Ollama lists no embedding models (checked
-  November 2026), so `/api/embed` there isn't expected to work. In compose the
+  November 2026), so `/api/embed` there isn't expected to work, though it
+  hasn't been tried with a key yet. In compose the
   local Ollama is `http://ollama:11434`; when running with `npm start`, it is
   `http://127.0.0.1:11434`.
 
@@ -121,9 +122,11 @@ The key is sent only to the endpoint it's set for: `OLLAMA_API_KEY` to
 `OLLAMA_URL`, and to embeddings only while they share that URL;
 `OLLAMA_EMBED_API_KEY` to `OLLAMA_EMBED_URL` only. No key is logged or
 returned. At startup the service logs one line for each endpoint that isn't on
-loopback, such as `not on loopback: chat goes to https://ollama.com`, so you
-know what leaves the machine: with chat in the cloud, that is each code
-capture's files and diffs and the notes the Linker reads. The service itself
+loopback, such as `not on loopback: chat goes to https://ollama.com`, so a
+cloud endpoint is never silent. With chat in the cloud, what goes there is
+each code capture's files and diffs and the notes the Linker reads. In compose
+the bundled Ollama (`http://ollama:11434`) is listed too: it's another
+container, so not loopback, though it stays on your machine. The service itself
 stays on loopback either way, since it has no authentication. The Reader
 (`npm run ask`) stays local only and ignores these settings.
 
