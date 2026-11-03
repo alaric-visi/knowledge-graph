@@ -70,17 +70,21 @@ notes that must never leave the machine.
 | Part | Runs on |
 |------|---------|
 | Code capture (the capture hook) | Local script: sends the changed files and their diffs, with no model involved |
-| Documenter (writes the code note) | Local: Ollama, `qwen3.5:9b` by default (`OLLAMA_MODEL`) |
-| Linker (picks the links) | Local: the same Ollama model |
-| Embeddings and search | Local: Ollama, `bge-large` (`OLLAMA_EMBED_MODEL`) |
+| Documenter (writes the code note) | Local: Ollama, `qwen3.5:9b` by default (`OLLAMA_MODEL`). Can be hosted Ollama (`OLLAMA_URL`, `OLLAMA_API_KEY`) |
+| Linker (picks the links) | Local: the same Ollama model, or hosted with it |
+| Embeddings and search | Local: Ollama, `bge-large` (`OLLAMA_EMBED_MODEL`). Can be another endpoint (`OLLAMA_EMBED_URL`, `OLLAMA_EMBED_API_KEY`), though hosted Ollama lists no embedding models |
 | Context injection (the hook) | Local script: searches through the service |
 | Memos (`/remember`) | **Claude**: the session's own agent writes each memo, since only it has the conversation; the service then stores and links them locally |
 | The session's coding (session A) | **Claude** |
 | The recall answer (session B) | **Claude**, reading the graph through the local MCP server |
 | The Reader's answer (`npm run ask`) | Local: Ollama, `qwen3.6:35b-a3b-coding` by default (`KG_READER_MODEL`) |
 
-So a code capture never leaves the machine. The one cloud step in building the
-graph is writing memos, and it's deliberate: a memo is distilled from a
+So by default a code capture never leaves the machine. Someone whose machine
+can't run the chat model can point the Documenter and Linker at hosted Ollama
+instead; the service then logs, at startup, each endpoint that isn't on
+loopback, and the Reader stays local regardless (see "Without local models" in
+the README). Otherwise the one cloud step in building the graph is writing
+memos, and it's deliberate: a memo is distilled from a
 conversation that only the session's agent has seen. Everything a cloud model
 touches still lands in the vault as plain markdown, so the graph itself is
 local and doesn't depend on which model reads it: the Reader answers from it

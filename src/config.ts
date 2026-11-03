@@ -1,11 +1,15 @@
 import { positiveInt } from './env';
+import type { OllamaEndpoint } from './ollama';
 
 export interface Config {
   /** Address to listen on. Loopback by default, so nothing else on the network can reach the service. */
   host: string;
   port: number;
   vaultPath: string;
-  ollamaUrl: string;
+  /** The Ollama API the Documenter, Researcher and Linker chat with. */
+  chatEndpoint: OllamaEndpoint;
+  /** The Ollama API that embeds notes and queries: the chat one unless OLLAMA_EMBED_URL says otherwise. */
+  embedEndpoint: OllamaEndpoint;
   ollamaModel: string;
   /** Let thinking models (qwen3, deepseek-r1) reason first. Much slower. */
   ollamaThink: boolean;
@@ -20,12 +24,33 @@ export interface Config {
 /** About 5,000 tokens: room for any note a run writes, while a huge hand-written one can't flood an agent's context. */
 export const DEFAULT_NOTE_MAX_CHARS = 20_000;
 
+/**
+ * The chat and embeddings endpoints. Embeddings share OLLAMA_URL, and its
+ * key, unless OLLAMA_EMBED_URL names another endpoint; then only
+ * OLLAMA_EMBED_API_KEY goes there, so neither key reaches the other endpoint.
+ */
+function ollamaEndpoints(env: NodeJS.ProcessEnv): Pick<Config, 'chatEndpoint' | 'embedEndpoint'> {
+  const chatUrl = withoutTrailingSlash(env.OLLAMA_URL || 'http://ollama:11434');
+  const embedUrl = withoutTrailingSlash(env.OLLAMA_EMBED_URL || chatUrl);
+  const chatKey = env.OLLAMA_API_KEY || undefined;
+  const embedKey = env.OLLAMA_EMBED_API_KEY || (embedUrl === chatUrl ? chatKey : undefined);
+  return { chatEndpoint: endpoint(chatUrl, chatKey), embedEndpoint: endpoint(embedUrl, embedKey) };
+}
+
+function endpoint(url: string, apiKey: string | undefined): OllamaEndpoint {
+  return apiKey ? { url, apiKey } : { url };
+}
+
+function withoutTrailingSlash(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   return {
     host: env.HOST || '127.0.0.1',
     port: positiveInt(env.PORT, 5678),
     vaultPath: env.VAULT_PATH || '/vault',
-    ollamaUrl: env.OLLAMA_URL || 'http://ollama:11434',
+    ...ollamaEndpoints(env),
     ollamaModel: env.OLLAMA_MODEL || 'qwen3.5:9b',
     ollamaThink: env.OLLAMA_THINK === 'true',
     embedModel: env.OLLAMA_EMBED_MODEL || 'bge-large',

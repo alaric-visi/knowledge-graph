@@ -169,7 +169,7 @@ export async function runLinker({ notes, language, description, cfg, index }: Li
     return { agent: 'linker', status: 'success', linksWritten: 0 };
   }
 
-  const raw = await chat(cfg.ollamaUrl, cfg.ollamaModel, [
+  const raw = await chat(cfg.chatEndpoint, cfg.ollamaModel, [
     { role: 'system', content: SYSTEM_PROMPT },
     { role: 'user', content: userPrompt(toLink, language, description) },
   ], cfg.ollamaThink);

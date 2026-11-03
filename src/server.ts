@@ -12,6 +12,7 @@ import { readNote, relatedNotes } from './graph';
 import { createEmbeddingIndex, EmbeddingIndex } from './embedding-index';
 import { memoLinks, writeMemos } from './memos';
 import { Memo, parseMemos, parseSearch, trimmedString } from './requests';
+import { isLoopback } from './env';
 
 interface WebhookPayload {
   file_path?: string;
@@ -333,4 +334,28 @@ export function startServer(cfg: Config): Promise<http.Server> {
     server.once('error', reject);
     server.listen(cfg.port, cfg.host, () => resolve(server));
   });
+}
+
+/**
+ * What the service logs once it is listening. It says which model calls
+ * leave loopback, one line per endpoint, so notes going to a cloud model is
+ * never silent. Keys are never logged.
+ */
+export function startupLog(cfg: Config): string[] {
+  const { chatEndpoint: chat, embedEndpoint: embeddings } = cfg;
+  const offLoopback =
+    chat.url === embeddings.url
+      ? [{ what: 'chat and embeddings go', url: chat.url }]
+      : [
+          { what: 'chat goes', url: chat.url },
+          { what: 'embeddings go', url: embeddings.url },
+        ];
+  return [
+    `knowledge-graph listening on ${cfg.host}:${cfg.port}`,
+    `  vault:  ${cfg.vaultPath}`,
+    `  ollama: ${chat.url} (${cfg.ollamaModel})`,
+    `  embeddings: ${embeddings.url} (${cfg.embedModel})`,
+    `  researcher: ${cfg.researcher ? 'on' : 'off'}`,
+    ...offLoopback.filter(e => !isLoopback(e.url)).map(e => `  not on loopback: ${e.what} to ${e.url}`),
+  ];
 }

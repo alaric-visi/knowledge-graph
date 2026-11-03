@@ -7,7 +7,7 @@ import { execFile } from 'child_process';
 import { ask, ReaderOptions } from '../src/reader';
 import { startServer } from '../src/server';
 import { Config } from '../src/config';
-import { close, listen } from './helpers/mock-ollama';
+import { close, listen, ollamaAt } from './helpers/mock-ollama';
 import {
   createMockReaderOllama,
   createMockReaderOllamaState,
@@ -82,7 +82,7 @@ describe('Reader: recall answered by a local model', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl,
+      ...ollamaAt(ollamaUrl),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',

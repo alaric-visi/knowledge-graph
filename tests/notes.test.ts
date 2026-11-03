@@ -6,7 +6,7 @@ import * as path from 'path';
 import request from './helpers/http';
 import { createApp } from '../src/server';
 import { Config, loadConfig } from '../src/config';
-import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState } from './helpers/mock-ollama';
+import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState, ollamaAt } from './helpers/mock-ollama';
 
 const NOTES_URL = '/webhook/knowledge-graph/notes';
 
@@ -34,7 +34,7 @@ describe('note and related endpoints (end-to-end)', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl: `http://127.0.0.1:${mockPort}`,
+      ...ollamaAt(`http://127.0.0.1:${mockPort}`),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',

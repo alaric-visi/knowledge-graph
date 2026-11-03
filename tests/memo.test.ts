@@ -14,6 +14,7 @@ import {
   createMockOllamaState,
   embeddedTexts,
   listen,
+  ollamaAt,
   resetMockOllamaState,
 } from './helpers/mock-ollama';
 import { triggerAndWait, waitForRun } from './helpers/runs';
@@ -43,7 +44,7 @@ describe('POST /webhook/knowledge-graph/memo (end-to-end)', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl: `http://127.0.0.1:${mockPort}`,
+      ...ollamaAt(`http://127.0.0.1:${mockPort}`),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',
@@ -347,7 +348,7 @@ describe('POST /webhook/knowledge-graph/memo (end-to-end)', () => {
   });
 
   test('with Ollama down the memos are still written, and the run is partial', async () => {
-    const run = await memoAndWait(createApp({ ...cfg, ollamaUrl: 'http://127.0.0.1:1' }), MEMO);
+    const run = await memoAndWait(createApp({ ...cfg, ...ollamaAt('http://127.0.0.1:1') }), MEMO);
 
     expect(run.body.status).toBe('partial');
     expect(run.body.errors.join(' ')).toContain('linker');

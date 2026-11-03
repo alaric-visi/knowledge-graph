@@ -24,10 +24,12 @@ export interface MockOllamaState {
   prompts: string[];
   /** Every embed request received, in order. */
   embedCalls: Array<{ model: string; input: string[] }>;
+  /** Every request received, in order: its path and Authorization header, if any. */
+  requests: Array<{ path: string; authorization?: string }>;
 }
 
 export function createMockOllamaState(): MockOllamaState {
-  return { linkTargets: [], links: ['[[existing-note]]'], delayMs: 0, prompts: [], embedCalls: [] };
+  return { linkTargets: [], links: ['[[existing-note]]'], delayMs: 0, prompts: [], embedCalls: [], requests: [] };
 }
 
 /** Resets the state in place, so a shared mock starts each test clean. */
@@ -63,6 +65,7 @@ export function createMockOllama(state: MockOllamaState): http.Server {
     let body = '';
     req.on('data', c => (body += c));
     req.on('end', async () => {
+      state.requests.push({ path: req.url ?? '', authorization: req.headers.authorization });
       if (req.url === '/api/embed') {
         replyToEmbed(state, body, res);
         return;
@@ -125,4 +128,9 @@ export async function listen(server: http.Server): Promise<number> {
 
 export function close(server: http.Server): Promise<void> {
   return new Promise<void>(resolve => server.close(() => resolve()));
+}
+
+/** Config fields that send both chat and embeddings to one Ollama at `url`, with no key. */
+export function ollamaAt(url: string): { chatEndpoint: { url: string }; embedEndpoint: { url: string } } {
+  return { chatEndpoint: { url }, embedEndpoint: { url } };
 }

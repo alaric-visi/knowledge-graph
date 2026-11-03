@@ -16,3 +16,14 @@ export function positiveInt(value: string | undefined, fallback: number): number
   const n = parseInt(value ?? '', 10);
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
+
+const LOOPBACK = /^(localhost|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[::1\])$/;
+
+/** Whether `url` points at this machine's loopback interface (127.0.0.1, ::1, localhost). False for anything that isn't a URL. */
+export function isLoopback(url: string): boolean {
+  try {
+    return LOOPBACK.test(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
