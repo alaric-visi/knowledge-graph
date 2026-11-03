@@ -1,6 +1,6 @@
 /**
  * Reading settings from the environment, shared by the service and its
- * clients (the hooks, /remember, the MCP server and `npm run reindex`).
+ * clients (the hooks, /remember, the MCP server, `npm run reindex` and `npm run ask`).
  */
 
 /** Where the clients find the service unless KG_SERVICE_URL says otherwise. */

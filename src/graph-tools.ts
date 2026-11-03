@@ -62,6 +62,11 @@ export function errorMessage(err: unknown): string {
   return err.message + cause;
 }
 
+/** What to tell the agent, or the user, when the service doesn't answer at all. */
+export function serviceUnreachable(baseUrl: string, err: unknown): string {
+  return `The knowledge-graph service is not reachable at ${baseUrl}. Is it running? (${errorMessage(err)})`;
+}
+
 const toolError = (text: string): ToolReply => ({ text, isError: true });
 
 /**
@@ -78,11 +83,11 @@ export async function callGraphTool(baseUrl: string, name: string, args: unknown
   if (!parsed.success) return toolError(`Invalid arguments for ${name}: ${z.prettifyError(parsed.error)}`);
 
   const base = `${baseUrl}/webhook/knowledge-graph`;
-  const a = parsed.data as Record<string, unknown>;
-  const notePath = `${base}/notes/${encodeURIComponent(String(a.name))}`;
+  const input = parsed.data as Record<string, unknown>;
+  const notePath = () => `${base}/notes/${encodeURIComponent(String(input.name))}`;
   switch (name as GraphToolName) {
     case 'search_notes': {
-      const { query, limit, type, kind, status } = a;
+      const { query, limit, type, kind, status } = input;
       return fetchJson(baseUrl, `${base}/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -90,9 +95,9 @@ export async function callGraphTool(baseUrl: string, name: string, args: unknown
       });
     }
     case 'get_note':
-      return fetchJson(baseUrl, notePath);
+      return fetchJson(baseUrl, notePath());
     case 'related_notes':
-      return fetchJson(baseUrl, `${notePath}/related`);
+      return fetchJson(baseUrl, `${notePath()}/related`);
   }
 }
 
@@ -102,7 +107,7 @@ async function fetchJson(baseUrl: string, url: string, init?: RequestInit): Prom
   try {
     res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch (err) {
-    return toolError(`The knowledge-graph service is not reachable at ${baseUrl}. Is it running? (${errorMessage(err)})`);
+    return toolError(serviceUnreachable(baseUrl, err));
   }
   const body = (await res.json().catch(() => undefined)) as { error?: unknown } | undefined;
   if (!res.ok) {

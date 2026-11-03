@@ -228,7 +228,7 @@ describe('Reader: recall answered by a local model', () => {
     for (const s of steps) expect(s.ms).toBeGreaterThanOrEqual(0);
   });
 
-  test('a cited note the Reader never retrieved is not listed as used, but reported as unverified', async () => {
+  test('a cited note the Reader never opened is not listed as used, but reported as unverified', async () => {
     await writeVaultNote('memos/cache-decision.md', CACHE_NOTE);
     const serviceUrl = await startService();
     ollama.replies = [
@@ -240,6 +240,65 @@ describe('Reader: recall answered by a local model', () => {
 
     expect(result.notes).toEqual([{ name: 'cache-decision', project: 'project-b' }]);
     expect(result.unverified).toEqual(['made-up-note']);
+  });
+
+  test('a note seen only as a search hit or a linked note is not listed as used', async () => {
+    await writeVaultNote('memos/cache-decision.md', CACHE_NOTE + '\n\n## Related\n- [[cache-sizing]]\n');
+    await writeVaultNote(
+      'memos/cache-sizing.md',
+      ['---', 'title: "Cache sizing"', 'type: "memo"', 'kind: "learning"', 'project: "project-b"', '---', '', '## Summary', 'Size the cache to the working set.'].join('\n'),
+    );
+    const serviceUrl = await startService();
+    ollama.replies = [
+      { toolCalls: [{ name: 'search_notes', arguments: { query: 'cache' } }] },
+      { toolCalls: [{ name: 'related_notes', arguments: { name: 'cache-sizing' } }] },
+      { content: 'Write-through [[cache-decision]] (project-b), sized as in [[cache-sizing]] (project-b).' },
+    ];
+
+    const result = await ask('Which caching did we choose?', options(serviceUrl));
+
+    // The search found both and related_notes named cache-decision, but neither note was opened.
+    expect(ollama.chatRequests[1].messages.at(-1).content).toContain('"name": "cache-decision"');
+    expect(result.notes).toEqual([]);
+    expect(result.unverified).toEqual(['cache-decision', 'cache-sizing']);
+  });
+
+  test("a step's time includes the tool calls it made, not just the model's reply", async () => {
+    await writeVaultNote('memos/cache-decision.md', CACHE_NOTE);
+    const serviceUrl = await startService();
+    // A service that takes 300 ms to answer, in front of the real one.
+    const slow = http.createServer((req, res) => {
+      setTimeout(() => {
+        const upstream = http.request(`${serviceUrl}${req.url}`, { method: req.method, headers: req.headers }, up => {
+          res.writeHead(up.statusCode ?? 502, up.headers);
+          up.pipe(res);
+        });
+        req.pipe(upstream);
+      }, 300);
+    });
+    const slowUrl = `http://127.0.0.1:${await listen(slow)}`;
+    ollama.replies = [
+      { toolCalls: [{ name: 'get_note', arguments: { name: 'cache-decision' } }] },
+      { content: 'Write-through [[cache-decision]] (project-b).' },
+    ];
+    const steps: Array<{ step: number; ms: number }> = [];
+
+    try {
+      await ask('Which caching did we choose?', options(slowUrl, { onStep: s => steps.push(s) }));
+    } finally {
+      slow.closeAllConnections();
+      await close(slow);
+    }
+
+    expect(steps[0].ms).toBeGreaterThanOrEqual(300);
+  });
+
+  test('an empty answer is an error, not a blank success', async () => {
+    ollama.replies = [{ content: '   ' }];
+
+    await expect(ask('Anything about caching?', options(await startService()))).rejects.toThrow(
+      'mock-reader gave an empty answer. Ask again, or try another model.',
+    );
   });
 
   describe('stays on this machine', () => {
@@ -355,7 +414,7 @@ describe('Reader: recall answered by a local model', () => {
           '**Notes used**',
           '- [[cache-decision]] (project-b)',
           '',
-          '**Cited but never retrieved** (check these): [[made-up-note]]',
+          '**Cited but never opened** (check these): [[made-up-note]]',
           '',
         ].join('\n'),
       );

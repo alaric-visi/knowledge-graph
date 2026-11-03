@@ -265,6 +265,8 @@ node ~/Personal/knowledge-graph/dist/ask.js "Before I add rate limiting to POST 
 - The answer gives the same facts as step 3, cited inline, and ends with
   **Notes used**.
 - Say it: nothing in this step left the machine.
+- The 35B model can push the service's `qwen3.5:9b` out of memory, so the
+  first capture after this step is slower while Ollama loads it again.
 
 ### Step 6: close (30 seconds)
 

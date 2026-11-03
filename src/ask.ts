@@ -20,7 +20,7 @@ export function formatAnswer(result: ReaderAnswer): string {
   if (result.notes.length === 0) lines.push('- none cited');
   for (const n of result.notes) lines.push(`- [[${n.name}]]${n.project ? ` (${n.project})` : ''}`);
   if (result.unverified.length > 0) {
-    lines.push('', `**Cited but never retrieved** (check these): ${result.unverified.map(n => `[[${n}]]`).join(', ')}`);
+    lines.push('', `**Cited but never opened** (check these): ${result.unverified.map(n => `[[${n}]]`).join(', ')}`);
   }
   return lines.join('\n') + '\n';
 }
@@ -40,13 +40,14 @@ async function main(): Promise<number> {
 
   const env = process.env;
   const model = env.KG_READER_MODEL || DEFAULT_MODEL;
+  const ollamaUrl = (env.KG_READER_OLLAMA_URL || DEFAULT_OLLAMA_URL).replace(/\/+$/, '');
   const started = Date.now();
   let steps = 0;
-  console.error(`ask: ${model} on ${env.KG_READER_OLLAMA_URL || DEFAULT_OLLAMA_URL}`);
+  console.error(`ask: ${model} on ${ollamaUrl}`);
   try {
     const result = await ask(question, {
       serviceUrl: serviceUrl(env),
-      ollamaUrl: (env.KG_READER_OLLAMA_URL || DEFAULT_OLLAMA_URL).replace(/\/+$/, ''),
+      ollamaUrl,
       model,
       maxSteps: positiveInt(env.KG_READER_MAX_STEPS, DEFAULT_MAX_STEPS),
       ollamaTimeoutMs: positiveInt(env.KG_READER_TIMEOUT_MS, DEFAULT_OLLAMA_TIMEOUT_MS),

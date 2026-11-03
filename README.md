@@ -501,8 +501,10 @@ offering the model the MCP server's three tools (`search_notes`, `get_note`,
 `related_notes`, the same definitions). The model searches, opens notes and
 follows links, then answers citing notes as `[[name]]`. The answer goes to
 stdout, ending in a **Notes used** list the Reader builds from the notes it
-actually retrieved; a citation of a note it never retrieved is listed apart,
-under **Cited but never retrieved**. Each step goes to stderr:
+actually opened with `get_note`; a citation of a note it never opened (made
+up, or seen only as a search hit or a link) is listed apart, under **Cited
+but never opened**. Each step goes to stderr, timed from the model's reply to
+the end of its tool calls:
 
 ```
 ask: qwen3.6:35b-a3b-coding on http://127.0.0.1:11434
