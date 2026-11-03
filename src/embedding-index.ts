@@ -273,7 +273,7 @@ export function createEmbeddingIndex(cfg: Config): EmbeddingIndex {
     // A note with no body is still findable by its title and context.
     const texts = sections.length > 0 ? sections.flatMap(s => chunkSection(s.heading, s.text)) : [''];
     const vectors = await embed(
-      cfg.ollamaUrl,
+      cfg.embedEndpoint,
       cfg.embedModel,
       texts.map(t => (t ? `${prefix}\n\n${t}` : prefix)),
     );
@@ -364,7 +364,7 @@ export function createEmbeddingIndex(cfg: Config): EmbeddingIndex {
       await syncing;
       const index = await load();
       const limit = Math.min(options.limit ?? DEFAULT_SEARCH_LIMIT, MAX_SEARCH_LIMIT);
-      const [queryVector] = await embed(cfg.ollamaUrl, cfg.embedModel, [query]);
+      const [queryVector] = await embed(cfg.embedEndpoint, cfg.embedModel, [query]);
 
       const hits: SearchHit[] = [];
       for (const [relPath, note] of Object.entries(index.notes)) {

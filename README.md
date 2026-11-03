@@ -91,6 +91,45 @@ docker run -d -p 127.0.0.1:5678:5678 -v /path/to/vault:/vault \
   -e OLLAMA_URL=http://host.docker.internal:11434 knowledge-graph
 ```
 
+### Without local models
+
+The Documenter and Linker (and the Researcher, when it's on) need a chat
+model, and search needs an embedding model. If your machine can't run the chat model, run it in the cloud and keep
+the rest here. There are two routes:
+
+- **The Ollama app, with a cloud model.** Install Ollama, `ollama signin`, and
+  set `OLLAMA_MODEL` to a cloud model such as `gpt-oss:120b-cloud`. The app
+  passes chat to Ollama's servers, and `bge-large` still embeds locally; it
+  runs fine on a CPU. Nothing else changes.
+- **Hosted Ollama directly, with no chat model installed.** Create an API
+  key in your account at [ollama.com](https://ollama.com) and set:
+
+  ```bash
+  OLLAMA_URL=https://ollama.com
+  OLLAMA_API_KEY=<your key>
+  OLLAMA_MODEL=gpt-oss:120b              # the plain name; "-cloud" is the app's
+  OLLAMA_EMBED_URL=http://ollama:11434   # embeddings stay on local Ollama
+  ```
+
+  Direct calls use the model's plain name, from `https://ollama.com/api/tags`.
+  Keep embeddings local: hosted Ollama lists no embedding models (checked
+  November 2026), so `/api/embed` there isn't expected to work, though it
+  hasn't been tried with a key yet. In compose the
+  local Ollama is `http://ollama:11434`; when running with `npm start`, it is
+  `http://127.0.0.1:11434`.
+
+The key is sent only to the endpoint it's set for: `OLLAMA_API_KEY` to
+`OLLAMA_URL`, and to embeddings only while they share that URL;
+`OLLAMA_EMBED_API_KEY` to `OLLAMA_EMBED_URL` only. No key is logged or
+returned. At startup the service logs one line for each endpoint that isn't on
+loopback, such as `not on loopback: chat goes to https://ollama.com`, so a
+cloud endpoint is never silent. With chat in the cloud, what goes there is
+each code capture's files and diffs and the notes the Linker reads. In compose
+the bundled Ollama (`http://ollama:11434`) is listed too: it's another
+container, so not loopback, though it stays on your machine. The service itself
+stays on loopback either way, since it has no authentication. The Reader
+(`npm run ask`) stays local only and ignores these settings.
+
 ### Trigger from the IDE
 
 ```bash
@@ -705,7 +744,10 @@ runs typecheck, tests, and a production build on every PR.
 |----------|---------|-------------|
 | `VAULT_HOST_PATH` | `./vault` | Host path to your Obsidian vault (compose only) |
 | `VAULT_PATH` | `/vault` | Vault path inside the container |
-| `OLLAMA_URL` | `http://ollama:11434` | Ollama API base URL |
+| `OLLAMA_URL` | `http://ollama:11434` | Ollama API base URL, for chat (and embeddings unless `OLLAMA_EMBED_URL` is set). `https://ollama.com` for hosted Ollama |
+| `OLLAMA_API_KEY` | none | Sent as `Authorization: Bearer <key>` to `OLLAMA_URL` only. Hosted Ollama needs one; a local Ollama doesn't |
+| `OLLAMA_EMBED_URL` | `OLLAMA_URL` | Ollama API for embeddings, when it isn't the chat one |
+| `OLLAMA_EMBED_API_KEY` | `OLLAMA_API_KEY` while embeddings share `OLLAMA_URL`, otherwise none | Sent as a bearer token to the embeddings endpoint only |
 | `OLLAMA_MODEL` | `qwen3.5:9b` | Model for all agents (`qwen2.5-coder:7b`, `llama3.2`, ...) |
 | `OLLAMA_EMBED_MODEL` | `bge-large` | Ollama embedding model for search. Changing it re-embeds every note |
 | `OLLAMA_THINK` | `false` | Let thinking models reason first. ~20x slower on a 9B model |

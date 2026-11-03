@@ -47,7 +47,7 @@ Then write:
  * to vault/code/.
  */
 export async function runDocumenter(ctx: CodeCapture, cfg: Config): Promise<WrittenNote> {
-  const content = await chat(cfg.ollamaUrl, cfg.ollamaModel, [
+  const content = await chat(cfg.chatEndpoint, cfg.ollamaModel, [
     { role: 'system', content: SYSTEM_PROMPT },
     { role: 'user', content: userPrompt(ctx) },
   ], cfg.ollamaThink);

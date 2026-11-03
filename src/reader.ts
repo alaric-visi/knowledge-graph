@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { GRAPH_TOOLS, GRAPH_TOOL_NAMES, REFERENCE_ONLY, callGraphTool, errorMessage, serviceUnreachable } from './graph-tools';
 import { wikilinkTarget } from './vault-format';
+import { isLoopback } from './env';
 
 export interface ReaderOptions {
   /** The service's base URL, as serviceUrl() gives it. */
@@ -132,17 +133,9 @@ export async function ask(question: string, options: ReaderOptions): Promise<Rea
   }
 }
 
-/** Loopback names and addresses: 127.0.0.0/8, ::1 and localhost. */
-const LOOPBACK = /^(localhost|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|\[::1\])$/;
-
 function requireLoopback(what: string, url: string): void {
-  let hostname: string;
-  try {
-    hostname = new URL(url).hostname;
-  } catch {
-    throw new ReaderError(`The ${what} ${url} is not a URL.`);
-  }
-  if (!LOOPBACK.test(hostname)) {
+  if (!URL.canParse(url)) throw new ReaderError(`The ${what} ${url} is not a URL.`);
+  if (!isLoopback(url)) {
     throw new ReaderError(
       `The ${what} ${url} is not on this machine. The Reader only talks to loopback addresses ` +
         '(127.0.0.1, ::1, localhost), so notes never leave this computer.',

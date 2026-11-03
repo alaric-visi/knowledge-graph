@@ -9,7 +9,7 @@ import { StdioClientTransport, getDefaultEnvironment } from '@modelcontextprotoc
 import { buildMcpServer } from '../src/mcp/server';
 import { startServer } from '../src/server';
 import { Config } from '../src/config';
-import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState } from './helpers/mock-ollama';
+import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState, ollamaAt } from './helpers/mock-ollama';
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -61,7 +61,7 @@ describe('MCP server for recall', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl: `http://127.0.0.1:${mockPort}`,
+      ...ollamaAt(`http://127.0.0.1:${mockPort}`),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',

@@ -3,6 +3,20 @@ export interface ChatMessage {
   content: string;
 }
 
+/** Where an Ollama API is, and the key it takes, if any. The key is only ever sent to this URL. */
+export interface OllamaEndpoint {
+  url: string;
+  /** Sent as a bearer token: hosted Ollama (https://ollama.com) needs one, a local Ollama doesn't. */
+  apiKey?: string;
+}
+
+function headers(endpoint: OllamaEndpoint): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    ...(endpoint.apiKey ? { Authorization: `Bearer ${endpoint.apiKey}` } : {}),
+  };
+}
+
 /**
  * Extracts assistant text from an LLM response, supporting both the native
  * Ollama format ({message: {content}}) and the OpenAI-compatible format
@@ -22,14 +36,14 @@ export function extractContent(response: unknown): string {
  * `think` is sent explicitly: Ollama ignores it for non-thinking models.
  */
 export async function chat(
-  baseUrl: string,
+  endpoint: OllamaEndpoint,
   model: string,
   messages: ChatMessage[],
   think = false,
 ): Promise<string> {
-  const res = await fetch(`${baseUrl}/api/chat`, {
+  const res = await fetch(`${endpoint.url}/api/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: headers(endpoint),
     body: JSON.stringify({ model, stream: false, think, messages }),
   });
 
@@ -44,11 +58,11 @@ export async function chat(
  * Embeds texts with Ollama's /api/embed, returning one vector per input, in
  * order. Throws on non-2xx responses or a reply without one vector per input.
  */
-export async function embed(baseUrl: string, model: string, input: string[]): Promise<number[][]> {
+export async function embed(endpoint: OllamaEndpoint, model: string, input: string[]): Promise<number[][]> {
   if (input.length === 0) return [];
-  const res = await fetch(`${baseUrl}/api/embed`, {
+  const res = await fetch(`${endpoint.url}/api/embed`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: headers(endpoint),
     // Truncation is Ollama's default, but sections are chunked to fit, so
     // it's only a backstop; sent explicitly in case the default changes.
     body: JSON.stringify({ model, input, truncate: true }),

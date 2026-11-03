@@ -5,7 +5,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { createApp } from '../src/server';
 import { Config } from '../src/config';
-import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState } from './helpers/mock-ollama';
+import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState, ollamaAt } from './helpers/mock-ollama';
 import { triggerAndWait } from './helpers/runs';
 
 /** Note names the prompt lists as candidates ("- [[name]] ..." lines), in order. */
@@ -34,7 +34,7 @@ describe("the Linker's link candidates (end-to-end)", () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl: `http://127.0.0.1:${mockPort}`,
+      ...ollamaAt(`http://127.0.0.1:${mockPort}`),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',

@@ -4,13 +4,14 @@ import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import request from './helpers/http';
-import { createApp, startServer } from '../src/server';
+import { createApp, startServer, startupLog } from '../src/server';
 import { Config, loadConfig } from '../src/config';
 import {
   close,
   createMockOllama,
   createMockOllamaState,
   listen,
+  ollamaAt,
   replyToEmbed,
   resetMockOllamaState,
 } from './helpers/mock-ollama';
@@ -37,7 +38,7 @@ describe('POST /webhook/knowledge-graph/trigger (end-to-end)', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl: `http://127.0.0.1:${mockPort}`,
+      ...ollamaAt(`http://127.0.0.1:${mockPort}`),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',
@@ -249,7 +250,7 @@ describe('POST /webhook/knowledge-graph/trigger (end-to-end)', () => {
   });
 
   test('a capture queued behind a failing run still runs', async () => {
-    const app = createApp({ ...cfg, ollamaUrl: 'http://127.0.0.1:1' });
+    const app = createApp({ ...cfg, ...ollamaAt('http://127.0.0.1:1') });
     const first = await request(app).post('/webhook/knowledge-graph/trigger').send(PAYLOAD);
     const second = await request(app).post('/webhook/knowledge-graph/trigger').send(PAYLOAD);
 
@@ -320,7 +321,7 @@ describe('POST /webhook/knowledge-graph/trigger (end-to-end)', () => {
 
     try {
       const res = await triggerAndWait(
-        createApp({ ...cfg, researcher: true, ollamaUrl: `http://127.0.0.1:${flakyPort}` }),
+        createApp({ ...cfg, researcher: true, ...ollamaAt(`http://127.0.0.1:${flakyPort}`) }),
         PAYLOAD,
       );
 
@@ -371,7 +372,7 @@ describe('POST /webhook/knowledge-graph/trigger (end-to-end)', () => {
     // Something for the Linker to link to, so it asks the model.
     await fs.writeFile(path.join(vaultDir, 'existing-note.md'), 'Notes on jwt.\n', 'utf8');
     await withFailing('linker', async ollamaUrl => {
-      const app = createApp({ ...cfg, ollamaUrl });
+      const app = createApp({ ...cfg, ...ollamaAt(ollamaUrl) });
 
       const res = await triggerAndWait(app, PAYLOAD);
 
@@ -388,13 +389,38 @@ describe('POST /webhook/knowledge-graph/trigger (end-to-end)', () => {
 
   test("a failed search for the Linker's candidates makes a code capture partial, with its note still written and reported", async () => {
     await withFailing('embed', async ollamaUrl => {
-      const res = await triggerAndWait(createApp({ ...cfg, ollamaUrl }), PAYLOAD);
+      const res = await triggerAndWait(createApp({ ...cfg, ...ollamaAt(ollamaUrl) }), PAYLOAD);
 
       expect(res.body.status).toBe('partial');
       expect(res.body.errors.join(' ')).toContain('linker');
       expect(res.body.notes).toHaveLength(1);
       await expect(fs.access(res.body.notes[0].note_path)).resolves.toBeUndefined();
     });
+  });
+
+  test('with chat and embeddings on separate endpoints, each gets only its own requests and key', async () => {
+    const embedState = createMockOllamaState();
+    const embedServer = createMockOllama(embedState);
+    const embedPort = await listen(embedServer);
+    try {
+      const app = createApp({
+        ...cfg,
+        chatEndpoint: { url: `http://127.0.0.1:${mockPort}`, apiKey: 'chat-key' },
+        embedEndpoint: { url: `http://127.0.0.1:${embedPort}`, apiKey: 'embed-key' },
+      });
+      const run = await triggerAndWait(app, PAYLOAD);
+
+      expect(run.body.status).toBe('complete');
+      const chats = mockState.requests;
+      const embeds = embedState.requests;
+      expect(chats.length).toBeGreaterThan(0);
+      expect(embeds.length).toBeGreaterThan(0);
+      expect(chats.every(r => r.path === '/api/chat' && r.authorization === 'Bearer chat-key')).toBe(true);
+      expect(embeds.every(r => r.path === '/api/embed' && r.authorization === 'Bearer embed-key')).toBe(true);
+      expect(JSON.stringify(run.body)).not.toMatch(/chat-key|embed-key/);
+    } finally {
+      await close(embedServer);
+    }
   });
 
   test('healthz responds ok', async () => {
@@ -432,5 +458,58 @@ describe('POST /webhook/knowledge-graph/trigger (end-to-end)', () => {
         await new Promise<void>(resolve => server.close(() => resolve()));
       }
     });
+  });
+});
+
+describe('the startup log', () => {
+  const LOCAL = 'http://127.0.0.1:11434';
+
+  function lines(env: NodeJS.ProcessEnv): string[] {
+    return startupLog(loadConfig({ VAULT_PATH: '/vault', ...env }));
+  }
+
+  function offLoopback(env: NodeJS.ProcessEnv): string[] {
+    return lines(env).filter(l => l.includes('not on loopback'));
+  }
+
+  test('says nothing leaves loopback when every endpoint is local', () => {
+    expect(offLoopback({ OLLAMA_URL: LOCAL })).toEqual([]);
+    expect(offLoopback({ OLLAMA_URL: 'http://localhost:11434', OLLAMA_EMBED_URL: 'http://[::1]:11434' })).toEqual([]);
+  });
+
+  test('names chat when only chat is off loopback', () => {
+    expect(offLoopback({ OLLAMA_URL: 'https://ollama.com', OLLAMA_EMBED_URL: LOCAL })).toEqual([
+      '  not on loopback: chat goes to https://ollama.com',
+    ]);
+  });
+
+  test('names embeddings when only they are off loopback', () => {
+    expect(offLoopback({ OLLAMA_URL: LOCAL, OLLAMA_EMBED_URL: 'https://ollama.com' })).toEqual([
+      '  not on loopback: embeddings go to https://ollama.com',
+    ]);
+  });
+
+  test('names both in one line when they share an endpoint off loopback', () => {
+    expect(offLoopback({ OLLAMA_URL: 'https://ollama.com' })).toEqual([
+      '  not on loopback: chat and embeddings go to https://ollama.com',
+    ]);
+  });
+
+  test('names each when they go to different endpoints off loopback', () => {
+    expect(offLoopback({ OLLAMA_URL: 'https://ollama.com', OLLAMA_EMBED_URL: 'http://192.168.1.20:11434' })).toEqual([
+      '  not on loopback: chat goes to https://ollama.com',
+      '  not on loopback: embeddings go to http://192.168.1.20:11434',
+    ]);
+  });
+
+  test('never holds a key', () => {
+    const log = lines({
+      OLLAMA_URL: 'https://ollama.com',
+      OLLAMA_API_KEY: 'chat-key',
+      OLLAMA_EMBED_URL: 'https://embed.example.com',
+      OLLAMA_EMBED_API_KEY: 'embed-key',
+    }).join('\n');
+    expect(log).toContain('https://ollama.com');
+    expect(log).not.toMatch(/chat-key|embed-key/);
   });
 });

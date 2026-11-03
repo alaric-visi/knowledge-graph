@@ -49,6 +49,9 @@ services:
       PORT: "5678"
       VAULT_PATH: /vault
       OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      OLLAMA_EMBED_URL: ${OLLAMA_EMBED_URL:-}
+      OLLAMA_EMBED_API_KEY: ${OLLAMA_EMBED_API_KEY:-}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:9b}
       OLLAMA_THINK: ${OLLAMA_THINK:-false}
       OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-bge-large}

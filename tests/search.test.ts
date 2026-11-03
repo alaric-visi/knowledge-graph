@@ -13,6 +13,7 @@ import {
   createMockOllamaState,
   embeddedTexts,
   listen,
+  ollamaAt,
   replyToEmbed,
   resetMockOllamaState,
 } from './helpers/mock-ollama';
@@ -47,7 +48,7 @@ describe('search over the embedding index (end-to-end)', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl: `http://127.0.0.1:${mockPort}`,
+      ...ollamaAt(`http://127.0.0.1:${mockPort}`),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',
@@ -261,7 +262,7 @@ describe('search over the embedding index (end-to-end)', () => {
     });
     const port = await listen(confused);
     try {
-      const app = createApp({ ...cfg, researcher: true, ollamaUrl: `http://127.0.0.1:${port}` });
+      const app = createApp({ ...cfg, researcher: true, ...ollamaAt(`http://127.0.0.1:${port}`) });
       const run = await triggerAndWait(app, PAYLOAD);
       const research = run.body.notes.find((n: { agent: string }) => n.agent === 'researcher');
       const code = run.body.notes.find((n: { agent: string }) => n.agent === 'documenter');
@@ -425,7 +426,7 @@ describe('search over the embedding index (end-to-end)', () => {
       const port = await listen(server);
       try {
         await writeVaultNote('code/by-hand.md', plainNote('By hand', ['## Notes', 'docker']));
-        const app = createApp({ ...cfg, ollamaUrl: `http://127.0.0.1:${port}` });
+        const app = createApp({ ...cfg, ...ollamaAt(`http://127.0.0.1:${port}`) });
         expect(await resultNames(app, 'docker')).toEqual(['by-hand']);
 
         gate.shut = true;

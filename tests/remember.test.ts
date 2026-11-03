@@ -8,7 +8,7 @@ import { startServer } from '../src/server';
 import { Config } from '../src/config';
 import { parseNote } from '../src/vault';
 import { remember } from '../src/remember';
-import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState } from './helpers/mock-ollama';
+import { close, createMockOllama, createMockOllamaState, listen, resetMockOllamaState, ollamaAt } from './helpers/mock-ollama';
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -55,7 +55,7 @@ describe('remember command', () => {
       host: '127.0.0.1',
       port: 0,
       vaultPath: vaultDir,
-      ollamaUrl,
+      ...ollamaAt(ollamaUrl),
       ollamaModel: 'mock-model',
       ollamaThink: false,
       embedModel: 'mock-embed',
