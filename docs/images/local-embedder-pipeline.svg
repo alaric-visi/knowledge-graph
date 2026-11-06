@@ -61,3 +61,4 @@
 
   <text x="540" y="252" text-anchor="middle" fill="#CBD5E1" font-size="12">Result: Cold-start embedding takes &lt;5ms in Node with zero native binary dependencies or external network calls</text>
 </svg>
+
