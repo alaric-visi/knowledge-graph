@@ -21,7 +21,7 @@ In this fork, we replaced both background daemons with an **all-in-one stdio MCP
 | Capability | Original Repository (`lukewoodcock/knowledge-graph`) | This Fork (Antigravity Direct-Vault Edition) |
 | :--- | :--- | :--- |
 | **Embedding Engine** | External Ollama HTTP call (`/api/embed` with `bge-large`) | In-process 384-dimensional TypeScript embedder (`src/local-embed.ts`) in `<5ms` |
-| **Note Writing & Linking** | Secondary local LLM (`qwen3.5:9b`) called over HTTP (`15s-30s` per run) | Antigravity writes notes directly via MCP (`save_memos`, `save_code_note`) and `autoLinkNote()` links related notes by vector similarity (`>= 0.62`) |
+| **Note Writing & Linking** | Queued in the background via `202 Accepted` (`15s-30s` per Ollama `Documenter` and `Linker` run before notes are searchable, whilst `dist/remember.js` polls until completion) | Antigravity writes notes directly via MCP (`save_memos`, `save_code_note`) and `autoLinkNote()` links related notes by vector similarity (`>= 0.62`) immediately |
 | **MCP Server** | 3 read-only tools proxying HTTP calls to `localhost:5678` | 6 direct-vault tools (`search_notes`, `get_note`, `related_notes`, `save_memos`, `save_code_note` and `reindex_vault`) operating straight on `VAULT_PATH` |
 | **Context Injection** | Claude Code `UserPromptSubmit` hook calling `localhost:5678` | Native Antigravity `PreInvocation` hook (`src/hook/agy-pre-invocation.ts`) searching the vault in-process with per-prompt deduplication |
 | **Packaging** | Per-project `.mcp.json` and `.claude/settings.json` copies | Global Antigravity plugin (`~/.gemini/config/plugins/knowledge-graph`) installed via `npm run install:antigravity` |
@@ -107,7 +107,7 @@ export function embedOneLocal(text: string): number[] {
 
 ![Antigravity Plugin Lifecycle](docs/images/antigravity-plugin-flow.svg)
 
-In the original repository, `src/mcp/server.ts` exposed only three read-only tools (`search_notes`, `get_note` and `related_notes`), each of which called `fetch('http://127.0.0.1:5678/webhook/knowledge-graph/...')`. Writing notes required shelling out to `node dist/remember.js` or triggering the Claude Code `Stop` hook, which then waited for Ollama's `Documenter` and `Linker` agents.
+In the original repository, `src/mcp/server.ts` exposed only three read-only tools (`search_notes`, `get_note` and `related_notes`), each of which called `fetch('http://127.0.0.1:5678/webhook/knowledge-graph/...')`. Writing notes happened outside MCP: the Claude Code `Stop` hook posted code diffs to the service (`202 Accepted`) where Ollama's `Documenter` and `Linker` agents ran asynchronously in a background queue (`15s-30s` before the note became searchable), whilst `/remember` shelled out to `node dist/remember.js` and polled `/webhook/knowledge-graph/runs/:id` waiting for the queue and `Linker` to finish.
 
 #### Before (`src/mcp/server.ts` in upstream)
 
