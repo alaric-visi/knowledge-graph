@@ -1,0 +1,13 @@
+{
+  "knowledge-graph-context-injection": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "VAULT_PATH=\"/Users/mikehiggins/Documents/obsidian\" OLLAMA_EMBED_MODEL=\"local\" node \"/Users/mikehiggins/work/knowledge-graph/dist/hook/agy-pre-invocation.js\"",
+        "timeout": 5
+      }
+    ]
+  }
+}
+

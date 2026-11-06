@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 520" width="1080" height="520" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1080" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E1B4B" />
+    </linearGradient>
+    <linearGradient id="oldHeader" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#475569" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+    <linearGradient id="newHeader" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#0891B2" />
+    </linearGradient>
+    <marker id="arrowMuted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#94A3B8" />
+    </marker>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#38BDF8" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="520" rx="16" fill="url(#bgGrad)" />
+  <text x="540" y="38" text-anchor="middle" fill="#F8FAFC" font-size="20" font-weight="700">Architectural Comparison: Original Ollama Service vs Antigravity Direct-Vault Edition</text>
+
+  <!-- LEFT PANEL: Original Architecture -->
+  <rect x="28" y="58" width="496" height="434" rx="12" fill="#1E293B" stroke="#475569" stroke-width="1.5" />
+  <rect x="28" y="58" width="496" height="44" rx="12" fill="url(#oldHeader)" />
+  <text x="276" y="86" text-anchor="middle" fill="#F1F5F9" font-size="15" font-weight="700">Original Repo (Requires Docker, Express Daemon &amp; Ollama)</text>
+
+  <!-- Left Boxes -->
+  <rect x="52" y="122" width="200" height="64" rx="8" fill="#0F172A" stroke="#64748B" stroke-width="1.5" />
+  <text x="152" y="147" text-anchor="middle" fill="#E2E8F0" font-size="13" font-weight="600">IDE Session (Claude Code)</text>
+  <text x="152" y="168" text-anchor="middle" fill="#94A3B8" font-size="11">Stop Hook + dist/remember.js</text>
+
+  <rect x="298" y="122" width="200" height="64" rx="8" fill="#0F172A" stroke="#64748B" stroke-width="1.5" />
+  <text x="398" y="147" text-anchor="middle" fill="#E2E8F0" font-size="13" font-weight="600">HTTP Proxy MCP Server</text>
+  <text x="398" y="168" text-anchor="middle" fill="#94A3B8" font-size="11">3 Read-Only Tools (port 5678)</text>
+
+  <rect x="52" y="226" width="446" height="74" rx="8" fill="#0F172A" stroke="#F59E0B" stroke-width="1.5" />
+  <text x="275" y="252" text-anchor="middle" fill="#FDE68A" font-size="13" font-weight="600">Background Express Server (127.0.0.1:5678)</text>
+  <text x="275" y="272" text-anchor="middle" fill="#CBD5E1" font-size="11">Capture Queue -&gt; Documenter Agent -&gt; Researcher Agent -&gt; Linker Agent</text>
+  <text x="275" y="290" text-anchor="middle" fill="#94A3B8" font-size="11">Must remain running continuously in terminal or Docker container</text>
+
+  <rect x="52" y="340" width="220" height="82" rx="8" fill="#27171C" stroke="#F43F5E" stroke-width="1.5" />
+  <text x="162" y="366" text-anchor="middle" fill="#FDA4AF" font-size="13" font-weight="600">Ollama Daemon (11434)</text>
+  <text x="162" y="386" text-anchor="middle" fill="#FECDD3" font-size="11">qwen3.5:9b (~6-9 GB RAM)</text>
+  <text x="162" y="404" text-anchor="middle" fill="#FECDD3" font-size="11">+ bge-large (/api/embed)</text>
+
+  <rect x="298" y="340" width="200" height="82" rx="8" fill="#0F172A" stroke="#64748B" stroke-width="1.5" />
+  <text x="398" y="368" text-anchor="middle" fill="#E2E8F0" font-size="13" font-weight="600">Obsidian Vault</text>
+  <text x="398" y="388" text-anchor="middle" fill="#94A3B8" font-size="11">code/, memos/, logs/</text>
+  <text x="398" y="406" text-anchor="middle" fill="#94A3B8" font-size="11">.knowledge-graph/index.json</text>
+
+  <text x="276" y="464" text-anchor="middle" fill="#FCA5A5" font-size="12" font-weight="600">Latency: 15-30s per capture | RAM overhead: 6-22 GB | External daemon required</text>
+
+  <!-- Left Arrows -->
+  <line x1="152" y1="186" x2="152" y2="224" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#arrowMuted)" />
+  <line x1="398" y1="186" x2="398" y2="224" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#arrowMuted)" />
+  <line x1="162" y1="300" x2="162" y2="338" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#arrowMuted)" />
+  <line x1="398" y1="300" x2="398" y2="338" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#arrowMuted)" />
+
+  <!-- RIGHT PANEL: Antigravity Edition -->
+  <rect x="556" y="58" width="496" height="434" rx="12" fill="#1E293B" stroke="#38BDF8" stroke-width="2" />
+  <rect x="556" y="58" width="496" height="44" rx="12" fill="url(#newHeader)" />
+  <text x="804" y="86" text-anchor="middle" fill="#FFFFFF" font-size="15" font-weight="700">This Fork: Antigravity Plugin (Zero Ollama, Zero Daemons)</text>
+
+  <!-- Right Boxes -->
+  <rect x="580" y="122" width="212" height="72" rx="8" fill="#0F172A" stroke="#A78BFA" stroke-width="1.5" />
+  <text x="686" y="146" text-anchor="middle" fill="#DDD6FE" font-size="13" font-weight="600">Antigravity Agent + Skills</text>
+  <text x="686" y="165" text-anchor="middle" fill="#C4B5FD" font-size="11">/remember, /recall &amp; AGENTS.md</text>
+  <text x="686" y="182" text-anchor="middle" fill="#94A3B8" font-size="10">Agent writes &amp; links notes directly</text>
+
+  <rect x="816" y="122" width="212" height="72" rx="8" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5" />
+  <text x="922" y="146" text-anchor="middle" fill="#BAE6FD" font-size="13" font-weight="600">PreInvocation Hook</text>
+  <text x="922" y="165" text-anchor="middle" fill="#7DD3FC" font-size="11">src/hook/agy-pre-invocation.ts</text>
+  <text x="922" y="182" text-anchor="middle" fill="#94A3B8" font-size="10">Auto-injects notes (&gt;=0.60) in &lt;15ms</text>
+
+  <rect x="580" y="228" width="448" height="82" rx="8" fill="#0F172A" stroke="#22D3EE" stroke-width="1.8" />
+  <text x="804" y="252" text-anchor="middle" fill="#67E8F9" font-size="13" font-weight="700">Direct-Vault Engine &amp; Stdio MCP Server (src/vault-engine.ts)</text>
+  <text x="804" y="272" text-anchor="middle" fill="#E2E8F0" font-size="11">6 Tools: search_notes | get_note | related_notes | save_memos | save_code_note | reindex_vault</text>
+  <text x="804" y="292" text-anchor="middle" fill="#94A3B8" font-size="11">In-Process Local Embedder (src/local-embed.ts: 384-d vectors, stemming, synonyms &amp; auto-linker)</text>
+
+  <rect x="580" y="344" width="448" height="78" rx="8" fill="#0F292A" stroke="#10B981" stroke-width="1.5" />
+  <text x="804" y="370" text-anchor="middle" fill="#6EE7B7" font-size="13" font-weight="600">Obsidian Vault (~/Documents/obsidian)</text>
+  <text x="804" y="390" text-anchor="middle" fill="#D1FAE5" font-size="11">Markdown Notes (code/, memos/, logs/) + [[wikilinks]]</text>
+  <text x="804" y="408" text-anchor="middle" fill="#A7F3D0" font-size="11">.knowledge-graph/index.json (384-d local embeddings)</text>
+
+  <text x="804" y="464" text-anchor="middle" fill="#6EE7B7" font-size="12" font-weight="600">Latency: &lt;15ms search &amp; save | RAM overhead: ~0 MB | 100% In-Process</text>
+
+  <!-- Right Arrows -->
+  <line x1="686" y1="194" x2="686" y2="226" stroke="#38BDF8" stroke-width="1.8" marker-end="url(#arrowCyan)" />
+  <line x1="922" y1="194" x2="922" y2="226" stroke="#38BDF8" stroke-width="1.8" marker-end="url(#arrowCyan)" />
+  <line x1="804" y1="310" x2="804" y2="342" stroke="#38BDF8" stroke-width="1.8" marker-end="url(#arrowCyan)" />
+</svg>

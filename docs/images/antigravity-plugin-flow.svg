@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 340" width="1080" height="340" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="pluginBg" x1="0" y1="0" x2="1080" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#172554" />
+    </linearGradient>
+    <marker id="flowArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#38BDF8" />
+    </marker>
+    <marker id="greenArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#34D399" />
+    </marker>
+  </defs>
+
+  <rect width="1080" height="340" rx="16" fill="url(#pluginBg)" stroke="#1E3A8A" stroke-width="1.5" />
+  <text x="540" y="36" text-anchor="middle" fill="#F8FAFC" font-size="18" font-weight="700">Antigravity Plugin Lifecycle: Automatic PreInvocation Recall &amp; Direct MCP Capture</text>
+
+  <!-- Box 1: User Prompt -->
+  <rect x="30" y="70" width="210" height="95" rx="10" fill="#1E293B" stroke="#60A5FA" stroke-width="1.5" />
+  <text x="135" y="96" text-anchor="middle" fill="#93C5FD" font-size="13" font-weight="700">1. User Submits Prompt</text>
+  <text x="135" y="118" text-anchor="middle" fill="#E2E8F0" font-size="11">"How did we implement</text>
+  <text x="135" y="135" text-anchor="middle" fill="#E2E8F0" font-size="11">JWT refresh caching?"</text>
+  <text x="135" y="153" text-anchor="middle" fill="#64748B" font-size="10">Antigravity IDE / CLI</text>
+
+  <!-- Box 2: PreInvocation Hook -->
+  <rect x="280" y="70" width="250" height="95" rx="10" fill="#1E293B" stroke="#38BDF8" stroke-width="1.5" />
+  <text x="405" y="96" text-anchor="middle" fill="#7DD3FC" font-size="13" font-weight="700">2. PreInvocation Hook</text>
+  <text x="405" y="116" text-anchor="middle" fill="#E2E8F0" font-size="11">Deduplicates by (conversationId, hash)</text>
+  <text x="405" y="134" text-anchor="middle" fill="#E2E8F0" font-size="11">Searches .knowledge-graph/index.json</text>
+  <text x="405" y="152" text-anchor="middle" fill="#38BDF8" font-size="10">Injects &lt;knowledge-graph-reference-notes&gt;</text>
+
+  <!-- Box 3: Antigravity Agent -->
+  <rect x="570" y="70" width="220" height="95" rx="10" fill="#1E1B4B" stroke="#A78BFA" stroke-width="1.5" />
+  <text x="680" y="96" text-anchor="middle" fill="#DDD6FE" font-size="13" font-weight="700">3. Antigravity Agent Turn</text>
+  <text x="680" y="116" text-anchor="middle" fill="#E2E8F0" font-size="11">Reads injected notes immediately</text>
+  <text x="680" y="134" text-anchor="middle" fill="#E2E8F0" font-size="11">Calls get_note / related_notes</text>
+  <text x="680" y="152" text-anchor="middle" fill="#C4B5FD" font-size="10">Guided by /recall &amp; /remember skills</text>
+
+  <!-- Box 4: Direct-Vault Write & Auto-Link -->
+  <rect x="830" y="70" width="220" height="95" rx="10" fill="#0F292A" stroke="#34D399" stroke-width="1.5" />
+  <text x="940" y="96" text-anchor="middle" fill="#6EE7B7" font-size="13" font-weight="700">4. Direct Capture via MCP</text>
+  <text x="940" y="116" text-anchor="middle" fill="#E2E8F0" font-size="11">save_memos &amp; save_code_note</text>
+  <text x="940" y="134" text-anchor="middle" fill="#E2E8F0" font-size="11">Auto-links top similar notes (&gt;=0.62)</text>
+  <text x="940" y="152" text-anchor="middle" fill="#34D399" font-size="10">Updates index.json in-process</text>
+
+  <!-- Bottom Vault Bar -->
+  <rect x="30" y="215" width="1020" height="95" rx="12" fill="#0F172A" stroke="#22D3EE" stroke-width="1.5" />
+  <text x="540" y="242" text-anchor="middle" fill="#67E8F9" font-size="14" font-weight="700">Installed Global Plugin Bundle (~/.gemini/config/plugins/knowledge-graph) + Obsidian Vault (~/Documents/obsidian)</text>
+  <text x="540" y="266" text-anchor="middle" fill="#E2E8F0" font-size="12">plugin.json  |  mcp_config.json  |  hooks.json  |  rules/AGENTS.md  |  skills/remember/SKILL.md  |  skills/recall/SKILL.md</text>
+  <text x="540" y="290" text-anchor="middle" fill="#94A3B8" font-size="11">All notes stay plain Markdown with YAML frontmatter and [[wikilinks]] in your Obsidian vault</text>
+
+  <!-- Arrows -->
+  <line x1="240" y1="118" x2="278" y2="118" stroke="#38BDF8" stroke-width="2" marker-end="url(#flowArrow)" />
+  <line x1="530" y1="118" x2="568" y2="118" stroke="#38BDF8" stroke-width="2" marker-end="url(#flowArrow)" />
+  <line x1="790" y1="118" x2="828" y2="118" stroke="#34D399" stroke-width="2" marker-end="url(#greenArrow)" />
+  <line x1="405" y1="215" x2="405" y2="167" stroke="#38BDF8" stroke-width="1.8" marker-end="url(#flowArrow)" />
+  <line x1="940" y1="165" x2="940" y2="213" stroke="#34D399" stroke-width="1.8" marker-end="url(#greenArrow)" />
+</svg>

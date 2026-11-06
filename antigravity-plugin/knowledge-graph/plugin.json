@@ -1,0 +1,13 @@
+{
+  "name": "knowledge-graph",
+  "displayName": "Knowledge Graph (Obsidian)",
+  "version": "1.0.0",
+  "description": "Local, Ollama-free personal knowledge graph in your Obsidian vault. Automatically injects relevant past notes on every prompt and provides /remember and /recall skills plus MCP tools to capture and link decisions, learnings, todos, and code notes.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "/remember Capture the key architectural decisions and learnings from this session",
+    "/recall What open todos or past decisions do we have in the knowledge graph?",
+    "Save a code note and decision memo for the changes we just made"
+  ]
+}
+

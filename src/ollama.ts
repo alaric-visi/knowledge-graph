@@ -1,3 +1,5 @@
+import { isLocalEmbed, localEmbed } from './local-embed';
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -60,6 +62,9 @@ export async function chat(
  */
 export async function embed(endpoint: OllamaEndpoint, model: string, input: string[]): Promise<number[][]> {
   if (input.length === 0) return [];
+  if (isLocalEmbed(model, endpoint.url)) {
+    return localEmbed(input);
+  }
   const res = await fetch(`${endpoint.url}/api/embed`, {
     method: 'POST',
     headers: headers(endpoint),
