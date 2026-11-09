@@ -7,23 +7,63 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
+function expandHome(p) {
+  if (p === '~') return os.homedir();
+  if (p.startsWith('~/') || p.startsWith('~\\')) {
+    return path.join(os.homedir(), p.slice(2));
+  }
+  return p;
+}
+
+function parseVaultFlag(argv) {
+  const idx = argv.indexOf('--vault');
+  return idx >= 0 && argv[idx + 1] ? argv[idx + 1] : undefined;
+}
+
+async function replacePlaceholdersInDir(dir, replacements) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await replacePlaceholdersInDir(fullPath, replacements);
+    } else if (entry.name.endsWith('.json') || entry.name.endsWith('.md')) {
+      let text = await fs.readFile(fullPath, 'utf8');
+      for (const [token, value] of Object.entries(replacements)) {
+        text = text.split(token).join(value);
+      }
+      await fs.writeFile(fullPath, text, 'utf8');
+    }
+  }
+}
+
 async function main() {
   const pluginSrc = path.join(ROOT, 'antigravity-plugin', 'knowledge-graph');
   const pluginDest = path.join(os.homedir(), '.gemini', 'config', 'plugins', 'knowledge-graph');
-  const vaultPath = process.env.VAULT_PATH || path.join(os.homedir(), 'Documents', 'obsidian');
+  const rawVault =
+    parseVaultFlag(process.argv.slice(2)) ||
+    process.env.VAULT_PATH ||
+    process.env.KG_VAULT_PATH ||
+    path.join(os.homedir(), 'Documents', 'obsidian');
+  const vaultPath = path.resolve(expandHome(rawVault));
 
-  // 1. Install global Antigravity plugin
+  // 1. Copy Antigravity plugin template and populate machine-local paths
   await fs.mkdir(pluginDest, { recursive: true });
   await fs.cp(pluginSrc, pluginDest, { recursive: true, force: true });
+  await replacePlaceholdersInDir(pluginDest, {
+    __REPO_ROOT__: ROOT,
+    __VAULT_PATH__: vaultPath,
+  });
   console.log(`Installed Antigravity plugin to: ${pluginDest}`);
+  console.log(`Configured repository root:      ${ROOT}`);
+  console.log(`Configured Obsidian vault path:  ${vaultPath}`);
 
   // 2. Ensure Obsidian vault directories exist
   for (const folder of ['code', 'memos', 'logs']) {
     await fs.mkdir(path.join(vaultPath, folder), { recursive: true });
   }
-  console.log(`Initialized Obsidian vault folders in: ${vaultPath}`);
+  console.log(`Initialised Obsidian vault folders in: ${vaultPath}`);
 
-  // 3. Load compiled vault engine, sync existing vault notes, and record initial architecture memo if empty
+  // 3. Load compiled vault engine, sync existing vault notes and record initial architecture memo if empty
   const { createDirectVaultEngine, loadLocalVaultConfig } = await import(path.join(ROOT, 'dist', 'vault-engine.js'));
   const cfg = loadLocalVaultConfig({ VAULT_PATH: vaultPath, OLLAMA_EMBED_MODEL: 'local' });
   const engine = createDirectVaultEngine(cfg);

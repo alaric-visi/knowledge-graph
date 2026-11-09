@@ -216,18 +216,47 @@ export async function runAgyPreInvocation(
 
 ---
 
-## Quick Start for Google Antigravity (No Ollama or Docker Needed)
+## Installation & Quick Start for Google Antigravity (No Ollama or Docker Needed)
 
-```bash
-npm install
-npm run build
-VAULT_PATH=~/Documents/obsidian npm run install:antigravity
-```
+### Prerequisites
+- **Node.js 20+** and **npm**
+- **Google Antigravity** (IDE or CLI)
+- An **Obsidian** vault folder on your machine (or any directory where you want your Markdown notes stored)
 
-What `npm run install:antigravity` (`scripts/install-antigravity.mjs`) does:
-1. Installs the self-contained Antigravity plugin bundle into `~/.gemini/config/plugins/knowledge-graph/` (`plugin.json`, `mcp_config.json`, `hooks.json`, `rules/AGENTS.md`, `skills/remember/SKILL.md`, `skills/recall/SKILL.md` and `assets/logo.svg`).
-2. Initialises the `code/`, `memos/` and `logs/` folders inside your Obsidian vault (`~/Documents/obsidian` by default).
-3. Syncs and embeds your existing Obsidian notes into `<vault>/.knowledge-graph/index.json` using the in-process local embedder.
+### Step-by-Step Installation
+
+1. **Clone the repository and build the TypeScript sources**
+
+   ```bash
+   git clone https://github.com/alaric-visi/knowledge-graph.git
+   cd knowledge-graph
+   npm install
+   npm run build
+   ```
+
+2. **Run the Antigravity plugin installer with your Obsidian vault path**
+
+   Pass the path to your Obsidian vault via `VAULT_PATH` or the `--vault` flag (if omitted, it defaults to `~/Documents/obsidian`):
+
+   ```bash
+   VAULT_PATH="/path/to/your/obsidian-vault" npm run install:antigravity
+   # Or using the --vault flag:
+   node scripts/install-antigravity.mjs --vault ~/Documents/MyObsidianVault
+   ```
+
+   What the installer (`scripts/install-antigravity.mjs`) does automatically:
+   1. Copies the plugin template from `antigravity-plugin/knowledge-graph/` into `~/.gemini/config/plugins/knowledge-graph/`.
+   2. Replaces the `__REPO_ROOT__` and `__VAULT_PATH__` placeholders across `mcp_config.json`, `hooks.json`, `rules/AGENTS.md` and `skills/*/SKILL.md` with your machine's resolved repository path and Obsidian vault path.
+   3. Initialises the `code/`, `memos/` and `logs/` subdirectories inside your Obsidian vault.
+   4. Syncs and embeds your existing Obsidian notes into `<vault>/.knowledge-graph/index.json` using the in-process local embedder (`src/local-embed.ts`).
+
+3. **Use the Knowledge Graph in Antigravity**
+
+   The plugin loads live in Antigravity without requiring a restart:
+   - **Automatic Recall (`PreInvocation` hook)**: Enabled by default. Every time you submit a prompt in any workspace, the hook searches your vault in `<15ms` and injects the top matching notes (`score >= 0.60`) inside a `<knowledge-graph-reference-notes>` system message block.
+   - **Save Notes (`/remember`)**: Type `/remember` (or ask the agent to save a decision, learning, todo, snippet or code note) to write and automatically link notes into your vault.
+   - **Search & Traverse (`/recall`)**: Type `/recall <question>` to search your vault by meaning, open full notes and walk incoming and outgoing `[[wikilinks]]`.
+   - **Change Vault Path Later**: Re-run `VAULT_PATH="/new/vault/path" npm run install:antigravity` at any time to point the plugin at a different vault.
 
 ### Direct-Vault MCP Tools Available in Antigravity
 
